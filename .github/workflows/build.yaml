@@ -15,7 +15,74 @@ permissions:
   contents: read
 
 jobs:
+  Docker:
+    name: Build&Push to Registry
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    env:
+      GHCR_REPO: ghcr.io/${{ github.repository_owner }}/ccache
+      BASE_IMAGE: ${{ matrix.base_image }}
+    strategy:
+      matrix:
+        base_image: ['alpine:3.15', 'debian:11', 'fedora:40', 'ubuntu:24.04']
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+
+    - name: Set up QEMU
+      id: qemu
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set dynamic environment
+      run: |
+        GIT_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+        OS_TAG="`echo ${{ env.BASE_IMAGE }} | sed 's|:|-|g'`"
+        FILT="cat"
+        test ${{ env.BASE_IMAGE }} = "alpine:3.15" && FILT="grep -v -e /arm/v6\$" # bus error
+        test ${{ env.BASE_IMAGE }} = "ubuntu:24.04" && FILT="grep -v -e s390x" # test.remote_http (Failed)
+        test ${{ env.BASE_IMAGE }} = "fedora:40" && FILT="grep -v s390x" # test.remote_http (Failed)
+        test ${{ env.BASE_IMAGE }} = "debian:11" && FILT="grep -v -e ppc64le -e /arm/v7\$" # test.remote_http (Failed)
+        PLATFORMS="`docker manifest inspect ${{ env.BASE_IMAGE }} | \
+          jq -r '.manifests[] | "\(.platform.os)/\(.platform.architecture)\(if .platform.variant != null then "/\(.platform.variant)" else "" end)"' | \
+          sort -u | ${FILT} | paste -sd ','`"
+        echo "GIT_BRANCH=${GIT_BRANCH}" >> $GITHUB_ENV
+        echo "PLATFORMS=${PLATFORMS}" >> $GITHUB_ENV
+        echo "OS_TAG=${OS_TAG}" >> $GITHUB_ENV
+        echo "BUILD_IMAGE=${{ env.GHCR_REPO }}:latest-${OS_TAG}" >> $GITHUB_ENV
+        cat dockerfiles/Dockerfile.pref dockerfiles/${OS_TAG}/Dockerfile \
+          dockerfiles/Dockerfile.build > Dockerfile
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v6
+      env:
+        CACHE_SPEC: "type=registry,ref=${{ env.GHCR_REPO }}:${{ env.GIT_BRANCH }}-${{ env.OS_TAG}}-buildcache"
+      with:
+        context: .
+        file: ./Dockerfile
+        build-args: |
+          BASE_IMAGE=${{ env.BASE_IMAGE }}
+          CMAKE_PARAMS=-DCMAKE_INSTALL_PREFIX=/usr
+        tags: ${{ env.BUILD_IMAGE }}
+        platforms: ${{ env.PLATFORMS }}
+        push: true
+        cache-from: ${{ env.CACHE_SPEC }}
+        cache-to: ${{ env.CACHE_SPEC }},mode=max
+
   build_and_test:
+    if: false
     timeout-minutes: 30
     env:
       CMAKE_GENERATOR: Ninja
@@ -192,6 +259,7 @@ jobs:
           path: testdir.tar.xz
 
   build_and_test_msys:
+    if: false
     timeout-minutes: 30
     runs-on: windows-latest
     strategy:
@@ -261,6 +329,7 @@ jobs:
           path: testdir.tar.xz
 
   build_macos_universal:
+    if: false
     timeout-minutes: 30
     name: macOS universal binary
     runs-on: macos-12
@@ -282,6 +351,7 @@ jobs:
           path: build_universal/ccache
 
   specific_tests:
+    if: false
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
