@@ -1,4 +1,5 @@
-FROM fedora:40
+ARG BASE_IMAGE=fedora:40
+FROM ${BASE_IMAGE} AS build
 
 RUN dnf install -y \
         blake3-devel \

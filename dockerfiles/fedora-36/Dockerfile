@@ -1,4 +1,5 @@
-FROM fedora:36
+ARG BASE_IMAGE=fedora:36
+FROM ${BASE_IMAGE} AS build
 
 RUN dnf install -y \
         autoconf \
