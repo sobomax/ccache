@@ -8,7 +8,7 @@ RUN apt-get update \
         clang \
         cmake \
         elfutils \
-        gcc-multilib \
+        gcc \
         libhiredis-dev \
         libzstd-dev \
         python3 \

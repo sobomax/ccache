@@ -12,7 +12,7 @@ RUN apt-get update \
         docbook-xml \
         docbook-xsl \
         elfutils \
-        gcc-multilib \
+        gcc \
         g++-13 \
         g++-14 \
         libhiredis-dev \
