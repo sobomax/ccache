@@ -24,6 +24,7 @@ jobs:
       GHCR_REPO: ghcr.io/${{ github.repository_owner }}/ccache
       BASE_IMAGE: ${{ matrix.base_image }}
     strategy:
+      fail-fast: false
       matrix:
         base_image: ['alpine:3.15', 'debian:11', 'fedora:40', 'ubuntu:24.04']
     steps:
@@ -52,9 +53,6 @@ jobs:
         OS_TAG="`echo ${{ env.BASE_IMAGE }} | sed 's|:|-|g'`"
         FILT="cat"
         test ${{ env.BASE_IMAGE }} = "alpine:3.15" && FILT="grep -v -e /arm/v6\$" # bus error
-        test ${{ env.BASE_IMAGE }} = "ubuntu:24.04" && FILT="grep -v -e s390x" # test.remote_http (Failed)
-        test ${{ env.BASE_IMAGE }} = "fedora:40" && FILT="grep -v s390x" # test.remote_http (Failed)
-        test ${{ env.BASE_IMAGE }} = "debian:11" && FILT="grep -v -e ppc64le -e /arm/v7\$" # test.remote_http (Failed)
         PLATFORMS="`docker manifest inspect ${{ env.BASE_IMAGE }} | \
           jq -r '.manifests[] | "\(.platform.os)/\(.platform.architecture)\(if .platform.variant != null then "/\(.platform.variant)" else "" end)"' | \
           sort -u | ${FILT} | paste -sd ','`"

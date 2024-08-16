@@ -18,5 +18,7 @@ ARG VERBOSE
 WORKDIR ${CCACHE_LOC}
 
 COPY --exclude=.git* . ${CCACHE_LOC}
-RUN ${COMMAND}
+ARG BASE_IMAGE
+ARG TARGETPLATFORM
+RUN CMAKE_PARAMS="`./misc/get-arch-buildargs ${CMAKE_PARAMS}`" ${COMMAND}
 RUN make -C build install

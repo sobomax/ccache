@@ -1,0 +1,32 @@
+#!/bin/sh
+
+set -e
+
+case "${BASE_IMAGE}" in
+alpine:3.15)
+  ;;
+debian:11)
+  case "${TARGETPLATFORM}" in
+  linux/ppc64le | linux/arm/v7)
+    echo "-DHTTP_STORAGE_BACKEND=OFF"
+    ;;
+  esac
+  ;;
+fedora:40)
+  case "${TARGETPLATFORM}" in
+  linux/s390x)
+    echo "-DHTTP_STORAGE_BACKEND=OFF"
+    echo "-DREDIS_STORAGE_BACKEND=OFF"
+    ;;
+  esac
+  ;;
+ubuntu:24.04)
+  case "${TARGETPLATFORM}" in
+  linux/s390x)
+    echo "-DHTTP_STORAGE_BACKEND=OFF"
+    echo "-DREDIS_STORAGE_BACKEND=OFF"
+    ;;
+  esac
+  ;;
+esac
+echo "${@}"
