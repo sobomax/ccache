@@ -15,18 +15,35 @@ permissions:
   contents: read
 
 jobs:
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Generate matrix from Dockerfiles
+      id: set-matrix
+      run: |
+        BASE_IMAGES="`grep "^ARG BASE_IMAGE" dockerfiles/*/Dockerfile | awk -F= '{print $2}' | sort -u | jq -R . | jq -s .`"
+        echo "matrix=${BASE_IMAGES}" >> $GITHUB_OUTPUT
+
   Docker:
     name: Build&Push to Registry
+    needs: generate-matrix
     runs-on: ubuntu-latest
     permissions:
       packages: write
-    env:
-      GHCR_REPO: ghcr.io/${{ github.repository_owner }}/ccache
-      BASE_IMAGE: ${{ matrix.base_image }}
     strategy:
       fail-fast: false
       matrix:
-        base_image: ['alpine:3.15', 'debian:11', 'fedora:40', 'ubuntu:24.04']
+        base_image: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
+    env:
+      GHCR_REPO: ghcr.io/${{ github.repository_owner }}/ccache
+      BASE_IMAGE: ${{ matrix.base_image }}
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
