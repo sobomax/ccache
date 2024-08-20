@@ -1,4 +1,5 @@
-FROM centos:7
+ARG BASE_IMAGE=centos:7
+FROM ${BASE_IMAGE}
 
 RUN yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
  && yum install -y centos-release-scl \

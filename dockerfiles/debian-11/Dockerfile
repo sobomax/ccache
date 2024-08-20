@@ -1,4 +1,5 @@
-FROM debian:11
+ARG BASE_IMAGE=debian:11
+FROM ${BASE_IMAGE}
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
