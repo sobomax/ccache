@@ -17,7 +17,7 @@ ARG VERBOSE
 
 WORKDIR ${CCACHE_LOC}
 
-COPY --exclude=.git* . ${CCACHE_LOC}
+COPY --exclude=.git* --exclude=dockerfiles . ${CCACHE_LOC}
 ARG BASE_IMAGE
 ARG TARGETPLATFORM
 RUN CMAKE_PARAMS="`./misc/get-arch-buildargs ${CMAKE_PARAMS}`" ${COMMAND}
