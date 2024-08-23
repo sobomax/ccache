@@ -12,6 +12,7 @@ RUN dnf install -y \
         findutils \
         gcc \
         gcc-c++ \
+        libstdc++-static \
         hiredis-devel \
         libzstd-devel \
         make \
