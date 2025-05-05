@@ -69,7 +69,7 @@ jobs:
       matrix:
         base_image: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
     env:
-      DOCKER_RW: ${{ ( github.repository == 'ccache/ccache' && github.event_name != 'pull_request' ) && 'true' || 'false' }}
+      DOCKER_RW: ${{ ( github.repository == 'sobomax/ccache' && github.event_name != 'pull_request' ) && 'true' || 'false' }}
       GHCR_REPO: ghcr.io/${{ github.repository_owner }}/ccache
       BASE_IMAGE: ${{ matrix.base_image }}
 
