@@ -73,7 +73,7 @@ jobs:
       run: |
         GIT_BRANCH="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
         test "${GIT_BRANCH}" != "master" || GIT_BRANCH="latest"
-        OS_TAG="`echo ${{ env.BASE_IMAGE }} | sed 's|:|-|g'`"
+        OS_TAG="`echo ${{ env.BASE_IMAGE }} | sed 's|.*/||g ; s|:|-|g ; s|_|-| ; s|_|.|'`"
         PLATFORMS="`docker manifest inspect ${{ env.BASE_IMAGE }} | \
           jq -r '.manifests[] | "\(.platform.os)/\(.platform.architecture)\(if .platform.variant != null then "/\(.platform.variant)" else "" end)"' | \
           sort -u | ./misc/get-arch-buildargs fltplatforms | paste -sd ','`"
