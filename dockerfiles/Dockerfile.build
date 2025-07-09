@@ -29,6 +29,9 @@ RUN --mount=type=bind,from=buildcache,source=/,target=${TROOT} \
 RUN --mount=type=bind,from=buildcache,source=/,target=${TROOT} \
  test ! -e ${TROOT}${CCACHE_BIN} || \
   cp ${TROOT}${CCACHE_BIN} ${CCACHE_BIN}
+RUN test ! -e ${CCACHE_BIN} || ${CCACHE_BIN} --max-size=10M
+RUN test ! -e ${CCACHE_BIN} || ${CCACHE_BIN} --set-config=hash_dir=false
+RUN test ! -e ${CCACHE_BIN} || ${CCACHE_BIN} --zero-stats
 
 WORKDIR ${CCACHE_LOC}
 
@@ -38,7 +41,6 @@ ARG TARGETPLATFORM
 RUN CMAKE_PARAMS="-DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
   `./misc/get-arch-buildargs platformopts ${CMAKE_PARAMS}`" ${COMMAND}
 RUN make -C build install
-RUN ${CCACHE_BIN} --max-size=10M
 RUN ${CCACHE_BIN} --show-stats > ${CCACHE_DIR}/lastbuild.stats
 RUN cat ${CCACHE_DIR}/lastbuild.stats
 FROM scratch AS export
