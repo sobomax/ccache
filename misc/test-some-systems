@@ -42,6 +42,9 @@ build manylinux-2.28 clang  clang++ clang   -D DEPS=DOWNLOAD
 build almalinux-9    gcc    g++     gcc     -D DEPS=DOWNLOAD
 build almalinux-9    clang  clang++ clang   -D DEPS=DOWNLOAD
 
+build manylinux-2.34 gcc    g++     gcc     -D DEPS=DOWNLOAD
+build manylinux-2.34 clang  clang++ clang   -D DEPS=DOWNLOAD
+
 build alpine-3.21    gcc    g++     gcc     -D DEPS=DOWNLOAD
 build alpine-3.21    clang  clang++ clang   -D DEPS=DOWNLOAD
 
