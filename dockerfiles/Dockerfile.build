@@ -38,11 +38,20 @@ WORKDIR ${CCACHE_LOC}
 COPY --exclude=.git* --exclude=dockerfiles . ${CCACHE_LOC}
 ARG BASE_IMAGE
 ARG TARGETPLATFORM
+ENV CCACHE_STATSLOG="/tmp/ccstats.log"
+ENV CCACHE_DEBUG="true"
+ENV CCACHE_DEBUGDIR="${CCACHE_DIR}/debug"
+ENV CCACHE_DEBUGLEVEL="2"
 RUN CMAKE_PARAMS="-DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
   `./misc/get-arch-buildargs platformopts ${CMAKE_PARAMS}`" ${COMMAND}
 RUN make -C build install
-RUN ${CCACHE_BIN} --show-stats > ${CCACHE_DIR}/lastbuild.stats
-RUN cat ${CCACHE_DIR}/lastbuild.stats
+ENV L_STATS="${CCACHE_DIR}/lastbuild.stats"
+ENV V_STATS="${CCACHE_DIR}/lastbuild.log.v.stats"
+RUN ${CCACHE_BIN} --show-stats > ${L_STATS}
+RUN ${CCACHE_BIN} --show-log-stats -v > ${V_STATS}
+RUN cat ${L_STATS} ${V_STATS}
+RUN test ! -e ${CCACHE_STATSLOG} || \
+ awk '/^cache_miss$/ { print substr(previous, 3) } { previous = $0 }' "${CCACHE_STATSLOG}"
 FROM scratch AS export
 ARG INSTALL_PREFIX
 ENV CCACHE_BIN="${INSTALL_PREFIX}/bin/ccache"
