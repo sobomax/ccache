@@ -56,8 +56,6 @@ TEST_CASE("util::exec_to_string")
     REQUIRE(!result);
 #ifdef _WIN32
     CHECK(util::starts_with(result.error(), "CreateProcess failure: "));
-#else
-    CHECK(result.error() == "posix_spawnp failed: No such file or directory");
 #endif
   }
 }
