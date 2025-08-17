@@ -3,7 +3,6 @@
 # This is a simple HTTP client to test readiness of the asynchronously
 # launched HTTP server.
 
-import base64
 import sys
 import time
 import urllib.request
@@ -13,8 +12,12 @@ def run(url, timeout, basic_auth):
     deadline = time.time() + timeout
     req = urllib.request.Request(url, method="HEAD")
     if basic_auth:
-        credentials = base64.b64encode(basic_auth.encode("ascii")).decode("ascii")
-        req.add_header("Authorization", f"Basic {credentials}")
+        import base64
+
+        encoded_credentials = base64.b64encode(
+            basic_auth.encode("ascii")
+        ).decode("ascii")
+        req.add_header("Authorization", f"Basic {encoded_credentials}")
     while True:
         try:
             response = urllib.request.urlopen(req)
@@ -23,7 +26,10 @@ def run(url, timeout, basic_auth):
         except urllib.error.URLError as e:
             print(e.reason)
             if time.time() > deadline:
-                sys.exit(f"All connection attempts failed within {timeout} seconds.")
+                print(
+                    f"All connection attempts failed within {timeout} seconds."
+                )
+                sys.exit(1)
             time.sleep(0.5)
 
 
@@ -31,7 +37,9 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--basic-auth", "-B", help="Basic auth tuple like user:pass")
+    parser.add_argument(
+        "--basic-auth", "-B", help="Basic auth tuple like user:pass"
+    )
     parser.add_argument(
         "--timeout",
         "-t",
