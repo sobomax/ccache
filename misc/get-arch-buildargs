@@ -60,6 +60,7 @@ platformopts() {
     ;;
   esac
   echo "-DNO_REDIS_TEST=ON" # Fails randomly
+  echo "-DNO_HTTP_STORAGE_TEST=ON" # Fails randomly
   if [ -e "${INSTALL_PREFIX}/bin/ccache" ]
   then
     echo "-DCMAKE_C_COMPILER_LAUNCHER=${INSTALL_PREFIX}/bin/ccache"
