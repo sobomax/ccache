@@ -189,6 +189,23 @@ set_counters(const StatsFile& stats_file, const Level1Counters& level_1_cs)
   });
 }
 
+static std::string
+suffix_from_type(const core::CacheEntryType type)
+{
+  switch (type) {
+  case core::CacheEntryType::manifest:
+    return "M";
+
+  case core::CacheEntryType::result:
+    return "R";
+
+  case core::CacheEntryType::compiler_hash:
+    return "H";
+  }
+
+  ASSERT(false);
+  return {};
+}
 static uint8_t
 calculate_wanted_cache_level(const uint64_t files_in_level_1)
 {
@@ -1078,8 +1095,7 @@ LocalStorage::look_up_cache_file(const Hash::Digest& key,
 
   // Try old format with R/M suffix
   const auto old_key_string = util::format_legacy_digest(key);
-  const std::string old_suffix =
-    type == core::CacheEntryType::manifest ? "M" : "R";
+  const std::string old_suffix = suffix_from_type(type);
   const auto old_key_string_with_suffix = old_key_string + old_suffix;
   for (uint8_t level = k_min_cache_levels; level <= k_max_cache_levels;
        ++level) {

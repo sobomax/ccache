@@ -73,6 +73,22 @@ const std::unordered_map<std::string_view /*scheme*/,
 #endif
 };
 
+namespace {
+
+bool
+supports_remote_storage(const core::CacheEntryType type)
+{
+  switch (type) {
+  case core::CacheEntryType::manifest:
+  case core::CacheEntryType::result:
+    return true;
+  default:
+    return false;
+  }
+}
+
+} // namespace
+
 std::vector<std::string>
 get_features()
 {
@@ -440,7 +456,7 @@ Storage::get(const Hash::Hash::Digest& key,
   if (!m_config.remote_only()) {
     auto value = local.get(key, type);
     if (value) {
-      if (m_config.reshare()) {
+      if (m_config.reshare() && supports_remote_storage(type)) {
         put_in_remote_storage(key, *value, Overwrite::no);
       }
       if (entry_receiver(std::move(*value))) {
@@ -449,12 +465,14 @@ Storage::get(const Hash::Hash::Digest& key,
     }
   }
 
-  get_from_remote_storage(key, type, [&](util::Bytes&& data) {
-    if (!m_config.remote_only()) {
-      local.put(key, type, data, Overwrite::no);
-    }
-    return entry_receiver(std::move(data));
-  });
+  if (supports_remote_storage(type)) {
+    get_from_remote_storage(key, type, [&](util::Bytes&& data) {
+      if (!m_config.remote_only()) {
+        local.put(key, type, data, Overwrite::no);
+      }
+      return entry_receiver(std::move(data));
+    });
+  }
 }
 
 void
@@ -465,7 +483,9 @@ Storage::put(const Hash::Digest& key,
   if (!m_config.remote_only()) {
     local.put(key, type, value, Overwrite::yes);
   }
-  put_in_remote_storage(key, value, Overwrite::yes);
+  if (supports_remote_storage(type)) {
+    put_in_remote_storage(key, value, Overwrite::yes);
+  }
 }
 
 void
@@ -474,7 +494,9 @@ Storage::remove(const Hash::Digest& key, const core::CacheEntryType type)
   if (!m_config.remote_only()) {
     local.remove(key, type);
   }
-  remove_from_remote_storage(key);
+  if (supports_remote_storage(type)) {
+    remove_from_remote_storage(key);
+  }
 }
 
 std::string
