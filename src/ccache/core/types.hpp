@@ -25,7 +25,11 @@ class Config;
 
 namespace core {
 
-enum class CacheEntryType : uint8_t { result = 0, manifest = 1 };
+enum class CacheEntryType : uint8_t {
+  result = 0,
+  manifest = 1,
+  compiler_hash = 2,
+};
 
 std::string to_string(CacheEntryType type);
 
