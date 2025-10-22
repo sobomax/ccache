@@ -35,6 +35,9 @@ to_string(const CacheEntryType type)
   case CacheEntryType::result:
     return "result";
 
+  case CacheEntryType::compiler_hash:
+    return "compiler-hash";
+
   default:
     return "unknown";
   }
