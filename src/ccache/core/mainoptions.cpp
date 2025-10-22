@@ -237,10 +237,15 @@ inspect_path(const fs::path& path)
     manifest.inspect(stdout);
     break;
   }
-  case core::CacheEntryType::result:
+  case core::CacheEntryType::result: {
     result::Deserializer result_deserializer(payload);
     ResultInspector result_inspector(stdout);
     result_deserializer.visit(result_inspector);
+    break;
+  }
+  case core::CacheEntryType::compiler_hash:
+    PRINT(
+      stdout, "{}\n", "Compiler hash entries contain only raw digest data.");
     break;
   }
 

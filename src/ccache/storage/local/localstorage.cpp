@@ -198,9 +198,13 @@ suffix_from_type(const core::CacheEntryType type)
 
   case core::CacheEntryType::result:
     return "R";
+
+  case core::CacheEntryType::compiler_hash:
+    return "H";
   }
 
   ASSERT(false);
+  return {};
 }
 
 static uint8_t

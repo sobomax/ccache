@@ -1480,6 +1480,52 @@ get_result_key_from_cpp(Context& ctx, util::Args& args, Hash& hash)
 
 // Hash mtime or content of a file, or the output of a command, according to
 // the CCACHE_COMPILERCHECK setting.
+static tl::expected<Hash::Digest, Failure>
+hash_compiler_content(const Context& ctx,
+                      const DirEntry& dir_entry,
+                      const std::string& path)
+{
+  std::optional<Hash::Digest> compiler_digest;
+
+  Hash mtime_hash;
+  mtime_hash.hash_delimiter("cc_compiler_mtime");
+  mtime_hash.hash(dir_entry.size());
+  mtime_hash.hash(path);
+  mtime_hash.hash(util::nsec_tot(dir_entry.mtime()));
+  const auto mtime_key = mtime_hash.digest();
+
+  ctx.storage.get(
+    mtime_key, core::CacheEntryType::compiler_hash, [&](util::Bytes&& value) {
+      Hash::Digest digest;
+      if (value.size() == digest.size()) {
+        std::copy_n(value.begin(), digest.size(), digest.begin());
+        compiler_digest = digest;
+        return true;
+      }
+
+      LOG("Compiler hash entry {} had unexpected size {}",
+          util::format_digest(mtime_key),
+          value.size());
+      ctx.storage.remove(mtime_key, core::CacheEntryType::compiler_hash);
+      return false;
+    });
+
+  if (!compiler_digest) {
+    Hash::Digest digest;
+    if (!hash_binary_file(ctx, digest, path)) {
+      LOG("Failed to compute compiler content digest for {}", path);
+      return tl::unexpected(Statistic::compiler_check_failed);
+    }
+
+    ctx.storage.put(mtime_key,
+                    core::CacheEntryType::compiler_hash,
+                    nonstd::span<const uint8_t>(digest.data(), digest.size()));
+    compiler_digest = digest;
+  }
+
+  return *compiler_digest;
+}
+
 static tl::expected<void, Failure>
 hash_compiler(const Context& ctx,
               Hash& hash,
@@ -1498,7 +1544,11 @@ hash_compiler(const Context& ctx,
     hash.hash(&ctx.config.compiler_check()[7]);
   } else if (ctx.config.compiler_check() == "content" || !allow_command) {
     hash.hash_delimiter("cc_content");
-    hash_binary_file(ctx, hash, path);
+    auto compiler_digest = hash_compiler_content(ctx, dir_entry, path);
+    if (!compiler_digest) {
+      return tl::unexpected(compiler_digest.error());
+    }
+    hash.hash(util::format_digest(*compiler_digest));
   } else { // command string
     if (!hash_multicommand_output(
           hash, ctx.config.compiler_check(), ctx.orig_args[0])) {
