@@ -83,7 +83,7 @@ public:
   std::vector<std::filesystem::path> ignore_header_paths;
 
   // Storage (fronting local and remote storage backends).
-  storage::Storage storage;
+  mutable storage::Storage storage;
 
   // Direct mode manifest.
   core::Manifest manifest;
