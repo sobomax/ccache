@@ -1546,6 +1546,7 @@ hash_compiler(const Context& ctx,
     hash.hash_delimiter("cc_content");
     auto compiler_digest = hash_compiler_content(ctx, dir_entry, path);
     if (!compiler_digest) {
+      ASSERT(false);
       return tl::unexpected(compiler_digest.error());
     }
     hash.hash(util::format_digest(*compiler_digest));
