@@ -1,6 +1,7 @@
 #!/bin/sh
 
 set -e
+set -x
 
 fltimages() {
   grep -v -e '^centos:7$' # EOLed
@@ -19,6 +20,26 @@ fltplatforms() {
      ;;
   esac
   ${FILT}
+}
+
+get_cc_ver() {
+  local CC="${CC:-"cc"}"
+  CC_v="`${CC} -v 2>&1`"
+  if [ "${?}" -ne 0 -o ! -n "${CC_v}" ]
+  then
+    exit 1
+  fi
+  CC_dm="`${CC} -dumpmachine 2>&1`"
+  if [ "${?}" -ne 0 -o ! -n "${CC_dm}" ]
+  then
+    exit 1
+  fi
+  CC_dv="`${CC} -dumpversion 2>&1`"
+  if [ "${?}" -ne 0 -o ! -n "${CC_dv}" ]
+  then
+    exit 1
+  fi
+  echo "${CC_v}${CC_dm}${CC_dv}" | md5sum | awk '{print $1}'
 }
 
 platformopts() {
@@ -66,6 +87,12 @@ platformopts() {
     echo "-DCMAKE_C_COMPILER_LAUNCHER=${INSTALL_PREFIX}/bin/ccache"
     echo "-DCMAKE_CXX_COMPILER_LAUNCHER=${INSTALL_PREFIX}/bin/ccache"
   fi
+  CC_VER="`get_cc_ver`"
+  if [ "${?}" -ne 0 -o ! -n "${CC_VER}" -o "${CC_VER}" = "68b329da9893e34099c7d8ad5cb9c940" ]
+  then
+    exit 1
+  fi
+  echo "CCACHE_COMPILERCHECK=string:${CC_VER}"
   echo "${@}"
 }
 

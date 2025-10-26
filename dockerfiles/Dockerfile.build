@@ -43,9 +43,9 @@ ENV CCACHE_STATSLOG="/tmp/ccstats.log"
 ##ENV CCACHE_DEBUG="true"
 ##ENV CCACHE_DEBUGDIR="${CCACHE_DIR}/debug"
 ##ENV CCACHE_DEBUGLEVEL="2"
-ENV CCACHE_COMPILERCHECK="content"
 RUN CMAKE_PARAMS="-DCMAKE_INSTALL_PREFIX=${INSTALL_PREFIX} \
-  `./misc/get-arch-buildargs platformopts ${CMAKE_PARAMS}`" ${COMMAND}
+  `./misc/get-arch-buildargs platformopts ${CMAKE_PARAMS}`"; test "${?}" -ne 0 && exit 1; \
+  CMAKE_PARAMS="${CMAKE_PARAMS}" ${COMMAND}
 RUN make -C build install
 ENV L_STATS="${CCACHE_DIR}/lastbuild.stats"
 ENV V_STATS="${CCACHE_DIR}/lastbuild.log.v.stats"
