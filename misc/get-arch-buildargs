@@ -15,6 +15,9 @@ fltplatforms() {
    ubuntu:20.04)
      FILT="${FILT} -e ^linux/arm/v7\$" # broken cmake
      ;;
+   almalinux:10)
+     FILT="${FILT} -e ^linux/386\$" # broken packages
+     ;;
    *)
      ;;
   esac
