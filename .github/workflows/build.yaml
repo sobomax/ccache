@@ -30,7 +30,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Generate matrix from Dockerfiles
       id: set-matrix
@@ -75,20 +75,20 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: 'recursive'
 
     - name: Set up QEMU
       id: qemu
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
 
     - name: Login to GitHub Container Registry
       if: env.DOCKER_RW == 'true'
-      uses: docker/login-action@v3
+      uses: docker/login-action@v4
       with:
         registry: ghcr.io
         username: ${{ github.repository_owner }}
@@ -127,7 +127,7 @@ jobs:
 
     - name: Build & Push image
       if: env.DOCKER_RW == 'true'
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       with:
         context: .
         file: ./Dockerfile
@@ -146,7 +146,7 @@ jobs:
 
     - name: Build image (PR)
       if: env.DOCKER_RW != 'true'
-      uses: docker/build-push-action@v6
+      uses: docker/build-push-action@v7
       with:
         context: .
         file: ./Dockerfile
@@ -283,7 +283,7 @@ jobs:
           fi
 
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build and test
         run: ci/build
@@ -294,7 +294,7 @@ jobs:
 
       - name: Upload testdir from failed tests
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.version }}-testdir.tar.xz
           path: testdir.tar.xz
@@ -356,7 +356,7 @@ jobs:
           echo "CMAKE_PARAMS=${cmake_params[*]}" >> $GITHUB_ENV
 
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Build and test
         run: ci/build
@@ -372,7 +372,7 @@ jobs:
 
       - name: Upload testdir from failed tests
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.sys }}-${{ matrix.compiler }}-testdir.tar.xz
           path: testdir.tar.xz
@@ -385,14 +385,14 @@ jobs:
       CMAKE_GENERATOR: Ninja
     steps:
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Prepare environment
         run: |
           sudo apt-get install -y asciidoctor pandoc
       - name: Build documentation
         run: ci/build-docs
       - name: Upload documentation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: docs
           path: |
@@ -413,7 +413,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-aarch64-linux-gnu libc6-dev-arm64-cross
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build binary
         env:
           CMAKE_GENERATOR: Ninja
@@ -422,7 +422,7 @@ jobs:
             -D CMAKE_EXE_LINKER_FLAGS_INIT=-static-libstdc++
         run: ci/build-binary
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-aarch64-glibc-binary
           path: install/ccache
@@ -440,7 +440,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-riscv64-linux-gnu libc6-dev-arm64-cross
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build binary
         env:
           CMAKE_GENERATOR: Ninja
@@ -449,7 +449,7 @@ jobs:
             -D CMAKE_EXE_LINKER_FLAGS_INIT=-static-libstdc++
         run: ci/build-binary
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-riscv64-glibc-binary
           path: install/ccache
@@ -479,7 +479,7 @@ jobs:
             git \
             ninja-build
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build binary
         env:
           CMAKE_GENERATOR: Ninja
@@ -487,7 +487,7 @@ jobs:
         run: |
           scl enable gcc-toolset-11 ci/build-binary
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-x86_64-glibc-binary
           path: install/ccache
@@ -510,7 +510,7 @@ jobs:
             runner: ubuntu-22.04
     steps:
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
       - name: Trigger build
@@ -549,7 +549,7 @@ jobs:
               CMAKE_GENERATOR=Ninja CMAKE_PARAMS="-D CMAKE_EXE_LINKER_FLAGS_INIT=-static" ci/build-binary
           '
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: linux-${{ matrix.arch }}-musl-static-binary
           path: install/ccache
@@ -563,11 +563,11 @@ jobs:
       CMAKE_GENERATOR: Ninja
     steps:
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build Darwin binary
         run: ci/build-darwin-binary
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: darwin-binary
           path: install/ccache
@@ -612,13 +612,13 @@ jobs:
           sudo mv $(basename ${TOOLCHAIN_FILENAME} .tar.xz) /opt/llvm-mingw
           echo /opt/llvm-mingw/bin >>${GITHUB_PATH}
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Build binary
         env:
           CMAKE_PARAMS: -D CMAKE_TOOLCHAIN_FILE=../toolchains/${{ matrix.toolchain }}.cmake
         run: ci/build-binary
       - name: Upload binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-${{ matrix.arch }}-binary
           path: install/ccache.exe
@@ -630,10 +630,10 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
 
@@ -768,7 +768,7 @@ jobs:
 
     steps:
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install CUDA
         if: matrix.CUDA != ''
@@ -782,7 +782,7 @@ jobs:
 
       - name: Prepare Windows environment (Visual Studio)
         if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1.12.0
+        uses: ilammy/msvc-dev-cmd@v1.13.0
         with:
           arch: ${{ matrix.msvc_arch }}
 
@@ -836,7 +836,7 @@ jobs:
 
       - name: Upload testdir from failed tests
         if: failure() || steps.build-and-test.outcome == 'failure'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.name }} - testdir.tar.xz
           path: testdir.tar.xz
@@ -859,15 +859,15 @@ jobs:
           sudo apt-get install -y minisign
 
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download binaries
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: "*-binary"
 
       - name: Download docs
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           pattern: docs
           path: docs
@@ -885,7 +885,7 @@ jobs:
           minisign -Sm release/*
 
       - name: Upload release
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ github.ref_type == 'tag' || github.event.inputs.test_tag != '' }}
         with:
           name: release
@@ -902,9 +902,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Download release
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: release
           path: release
@@ -931,7 +931,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Run Clang-Format in check mode
         run: misc/format-files --all --check
@@ -944,7 +944,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Get source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install spell checkers
         run: |
